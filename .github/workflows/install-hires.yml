@@ -30,6 +30,8 @@ jobs:
           fi
           cat .image_staging/evo_*.b64 | tr -d '\n' | base64 -d > assets/evothink-overview.jpg
           cat .image_staging/table_*.b64 | tr -d '\n' | base64 -d > assets/table-r1-overview.jpg
+          test "$(git hash-object assets/evothink-overview.jpg)" = '1a554c7c83661ce24e15421754bf9cadebe01753'
+          test "$(git hash-object assets/table-r1-overview.jpg)" = '58c9407fe520f33a88c8b01b9fbd10a8551a7e47'
           test "$(stat -c%s assets/evothink-overview.jpg)" -gt 300000
           test "$(stat -c%s assets/table-r1-overview.jpg)" -gt 300000
           file assets/evothink-overview.jpg | grep -q 'JPEG image data'
