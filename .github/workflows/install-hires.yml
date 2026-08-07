@@ -1,0 +1,47 @@
+name: Install high-resolution publication figures
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.image_staging/READY'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: install-hires
+  cancel-in-progress: true
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore original high-resolution figures
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f .image_staging/READY ]]; then
+            echo 'No staging marker; nothing to do.'
+            exit 0
+          fi
+          cat .image_staging/evo_*.b64 | tr -d '\n' | base64 -d > assets/evothink-overview.jpg
+          cat .image_staging/table_*.b64 | tr -d '\n' | base64 -d > assets/table-r1-overview.jpg
+          test "$(stat -c%s assets/evothink-overview.jpg)" -gt 300000
+          test "$(stat -c%s assets/table-r1-overview.jpg)" -gt 300000
+          file assets/evothink-overview.jpg | grep -q 'JPEG image data'
+          file assets/table-r1-overview.jpg | grep -q 'JPEG image data'
+
+      - name: Commit high-resolution figures
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .image_staging
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Replace publication figures with high-resolution originals'
+          git push
